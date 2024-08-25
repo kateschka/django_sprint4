@@ -20,7 +20,7 @@ class PostManager(Manager):
             comment_count=Count('comments'))
 
     def get_all_for_author(self, user) -> QuerySet:
-        """Return all posts for a given author."""
+        """Return all posts of a given author, including unpublished ones."""
         return super().get_queryset().select_related(
             'author', 'category', 'location'
         ).filter(
@@ -31,5 +31,5 @@ class PostManager(Manager):
             comment_count=Count('comments'))
 
     def get_all_for_user(self, user) -> QuerySet:
-        """Return all posts for a given user."""
+        """Return all published posts of a given author."""
         return self.get_queryset().filter(author=user)

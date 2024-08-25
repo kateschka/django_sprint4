@@ -43,7 +43,7 @@ def category_posts(request, category_slug: str):
 
 
 def profile(request, username: str):
-    """Display a user profile."""
+    """Display user profile."""
     user = get_object_or_404(User, username=username)
     if not user == request.user:
         posts = Post.published_objects.get_all_for_user(user)
@@ -58,7 +58,7 @@ def profile(request, username: str):
 
 @login_required
 def edit_profile(request):
-    """Display a user profile."""
+    """Edit user profile."""
     user = get_object_or_404(User, username=request.user.username)
     posts = Post.objects.filter(author=user)
     form = ProfileForm(request.POST or None, instance=user)
@@ -89,7 +89,7 @@ def post_detail(request, post_id: int):
 
 
 def edit_post(request, post_id: int):
-    """Edit a post."""
+    """Edit post."""
     post = get_object_or_404(Post, pk=post_id)
     if request.user != post.author:
         return redirect('blog:post_detail', post_id=post_id)
@@ -115,7 +115,7 @@ def create_post(request):
 
 @login_required
 def delete_post(request, post_id: int):
-    """Delete a post."""
+    """Delete post."""
     user = request.user
     post = get_object_or_404(Post, pk=post_id, author=user)
     if request.method == 'POST':
@@ -126,7 +126,7 @@ def delete_post(request, post_id: int):
 
 @login_required
 def create_comment(request, post_id: int):
-    """Create or edit a comment."""
+    """Create a comment."""
     form = CommentForm(request.POST or None)
     if form.is_valid() and request.method == 'POST':
         comment = form.save(commit=False)
@@ -138,7 +138,7 @@ def create_comment(request, post_id: int):
 
 
 def edit_comment(request, post_id: int, comment_id: int):
-    """Edit a comment."""
+    """Edit comment."""
     comment = get_object_or_404(Comment, pk=comment_id)
     form = CommentForm(request.POST or None, instance=comment)
     if form.is_valid() and comment.author == request.user:
@@ -153,7 +153,7 @@ def edit_comment(request, post_id: int, comment_id: int):
 
 @login_required
 def delete_comment(request, post_id: int, comment_id: int):
-    """Delete a comment."""
+    """Delete comment."""
     user = request.user
     comment = get_object_or_404(Comment, pk=comment_id, author=user)
     if request.method == 'POST':
