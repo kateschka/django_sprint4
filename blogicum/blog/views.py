@@ -79,9 +79,10 @@ def post_detail(request, post_id: int):
     post = get_object_or_404(Post, pk=post_id)
     if request.user != post.author:
         post = get_object_or_404(Post.published_objects.all(), pk=post_id)
+    comments = post.comments.select_related('author').filter(is_published=True)
     context = {
         'post': post,
-        'comments': post.comments.select_related('author'),
+        'comments': comments,
         'form': CommentForm()
     }
     return render(request, 'blog/detail.html', context)
