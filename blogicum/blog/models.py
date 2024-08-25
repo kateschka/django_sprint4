@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth import get_user_model
+from django.urls import reverse
 
 from .constants import MAX_FIELD_LENGTH, REPRESENTATION_LENGTH
 from .manager import PostManager
@@ -110,6 +111,9 @@ class Post(BaseModel):
     def __str__(self):
         return self.title[:REPRESENTATION_LENGTH]
 
+    def get_absolute_url(self):
+        return reverse('blog:post_detail', args=(self.pk,))
+
 
 class Comment(BaseModel):
     """Comment model."""
@@ -130,7 +134,7 @@ class Comment(BaseModel):
         verbose_name = 'комментарий'
         verbose_name_plural = 'Комментарии'
         default_related_name = 'comments'
-        ordering = ('id',)
+        ordering = ('created_at',)
 
     def __str__(self):
         return self.text[:REPRESENTATION_LENGTH]

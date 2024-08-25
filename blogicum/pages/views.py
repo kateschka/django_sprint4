@@ -1,21 +1,6 @@
 """Views for the pages app."""
 
 from django.shortcuts import render
-from django.views.generic import TemplateView
-
-# Create your views here.
-
-
-class AboutPage(TemplateView):
-    """Display the about page."""
-
-    template_name = 'pages/about.html'
-
-
-class RulesPage(TemplateView):
-    """Display the rules page."""
-
-    template_name = 'pages/rules.html'
 
 
 def page_not_found(request, exception):
