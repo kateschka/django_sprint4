@@ -1,9 +1,7 @@
 from django.contrib import admin
 from django.contrib.auth.models import Group
-from django.db.models.query import QuerySet
-from django.http import HttpRequest
 
-from .models import Category, Location, Post
+from .models import Category, Location, Post, Comment
 
 
 @admin.register(Post)
@@ -17,14 +15,6 @@ class PostAdmin(admin.ModelAdmin):
     list_filter = ('is_published',)
     search_fields = ('title', 'text')
     empty_value_display = '-пусто-'
-
-    def get_queryset(self, request: HttpRequest) -> QuerySet[any]:
-        """
-        Overriding the get_queryset method to return all posts.
-        If not overridden, the admin panel uses custom manager (PostManager)
-        and displays only posts that are published.
-        """
-        return Post.objects.all()
 
 
 @admin.register(Category)
@@ -46,6 +36,18 @@ class LocationAdmin(admin.ModelAdmin):
     list_display_links = ('name',)
     list_editable = ('is_published',)
     search_fields = ('name',)
+    empty_value_display = '-пусто-'
+
+
+@admin.register(Comment)
+class CommentAdmin(admin.ModelAdmin):
+    list_display = (
+        'id', 'author', 'text', 'post', 'created_at', 'is_published'
+    )
+    list_display_links = ('text',)
+    list_editable = ('is_published',)
+    list_filter = ('is_published',)
+    search_fields = ('text',)
     empty_value_display = '-пусто-'
 
 

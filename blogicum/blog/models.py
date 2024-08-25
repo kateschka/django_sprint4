@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth import get_user_model
+from django.urls import reverse
 
 from .constants import MAX_FIELD_LENGTH, REPRESENTATION_LENGTH
 from .manager import PostManager
@@ -92,9 +93,14 @@ class Post(BaseModel):
         on_delete=models.SET_NULL,
         verbose_name='Категория'
     )
-
-    published_objects = PostManager()
+    image = models.ImageField(
+        upload_to='posts',
+        null=True,
+        blank=True,
+        verbose_name='Изображение'
+    )
     objects = models.Manager()
+    published_objects = PostManager()
 
     class Meta:
         verbose_name = 'публикация'
@@ -105,18 +111,30 @@ class Post(BaseModel):
     def __str__(self):
         return self.title[:REPRESENTATION_LENGTH]
 
+    def get_absolute_url(self):
+        return reverse('blog:post_detail', args=(self.pk,))
 
-class Contest(models.Model):
-    title = models.CharField('Название', max_length=20)
-    description = models.CharField(
-        'Описание'
+
+class Comment(BaseModel):
+    """Comment model."""
+
+    author = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        verbose_name='Автор комментария'
     )
-    price = models.IntegerField(
-        'Цена',
-        min_value=10, max_value=100,
-        help_text='Рекомендованная розничная цена'
+    post = models.ForeignKey(
+        Post,
+        on_delete=models.CASCADE,
+        verbose_name='Публикация'
     )
-    comment = models.CharField(
-        'Комментарий',
-        blank=True, null=True
-    )
+    text = models.TextField(verbose_name='Текст')
+
+    class Meta:
+        verbose_name = 'комментарий'
+        verbose_name_plural = 'Комментарии'
+        default_related_name = 'comments'
+        ordering = ('created_at',)
+
+    def __str__(self):
+        return self.text[:REPRESENTATION_LENGTH]
