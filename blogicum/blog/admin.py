@@ -42,11 +42,9 @@ class LocationAdmin(admin.ModelAdmin):
 @admin.register(Comment)
 class CommentAdmin(admin.ModelAdmin):
     list_display = (
-        'id', 'author', 'text', 'post', 'created_at', 'is_published'
+        'id', 'author', 'text', 'post', 'created_at'
     )
     list_display_links = ('text',)
-    list_editable = ('is_published',)
-    list_filter = ('is_published',)
     search_fields = ('text',)
     empty_value_display = '-пусто-'
 

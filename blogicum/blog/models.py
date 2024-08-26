@@ -3,13 +3,29 @@ from django.contrib.auth import get_user_model
 from django.urls import reverse
 
 from .constants import MAX_FIELD_LENGTH, REPRESENTATION_LENGTH
-from .manager import PostManager
+from .manager import PublishedPostManager
 
 User = get_user_model()
 
 
-class BaseModel(models.Model):
-    """Base model for all models in the project."""
+class BaseModelWithCreatedAtField(models.Model):
+    """
+    Base model for all models in the project.
+    Adds created_at field to the model.
+    """
+
+    created_at = models.DateTimeField(
+        auto_now_add=True, verbose_name='Добавлено')
+
+    class Meta:
+        abstract = True
+
+
+class BaseModel(BaseModelWithCreatedAtField):
+    """
+    Base model for models in the project.
+    Adds is_published field to the model.
+    """
 
     is_published = models.BooleanField(
         default=True,
@@ -41,6 +57,7 @@ class Category(BaseModel):
     class Meta:
         verbose_name = 'категория'
         verbose_name_plural = 'Категории'
+        ordering = ('title',)
 
     def __str__(self):
         return self.title[:REPRESENTATION_LENGTH]
@@ -57,6 +74,7 @@ class Location(BaseModel):
     class Meta:
         verbose_name = 'местоположение'
         verbose_name_plural = 'Местоположения'
+        ordering = ('name',)
 
     def __str__(self):
         return self.name
@@ -100,7 +118,7 @@ class Post(BaseModel):
         verbose_name='Изображение'
     )
     objects = models.Manager()
-    published_objects = PostManager()
+    published_objects = PublishedPostManager()
 
     class Meta:
         verbose_name = 'публикация'
@@ -115,7 +133,7 @@ class Post(BaseModel):
         return reverse('blog:post_detail', args=(self.pk,))
 
 
-class Comment(BaseModel):
+class Comment(BaseModelWithCreatedAtField):
     """Comment model."""
 
     author = models.ForeignKey(

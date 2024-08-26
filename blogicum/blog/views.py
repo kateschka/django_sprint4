@@ -1,19 +1,13 @@
 """Views for the blog app."""
 from django.shortcuts import render, get_object_or_404, redirect
-from django.core.paginator import Paginator
 from django.contrib.auth.decorators import login_required
 from django.views.generic import ListView
+from django.db.models import Count
 
 from .forms import PostForm, CommentForm, ProfileForm
 from .models import Category, Post, Comment, User
 from .constants import QUERIES_PER_PAGE
-
-
-def get_page_obj(queryset, request):
-    """Get page for Paginator."""
-    paginator = Paginator(queryset, QUERIES_PER_PAGE)
-    page_number = request.GET.get('page')
-    return paginator.get_page(page_number)
+from .utils import get_page_obj
 
 
 class IndexListView(ListView):
@@ -48,7 +42,14 @@ def profile(request, username: str):
     if not user == request.user:
         posts = Post.published_objects.get_all_for_user(user)
     else:
-        posts = Post.published_objects.get_all_for_author(user)
+        posts = Post.objects.select_related(
+            'author', 'category', 'location'
+        ).filter(
+            author=user
+        ).order_by(
+            '-pub_date'
+        ).annotate(
+            comment_count=Count('comments'))
     context = {
         'profile': user,
         'page_obj': get_page_obj(posts, request)
@@ -60,14 +61,12 @@ def profile(request, username: str):
 def edit_profile(request):
     """Edit user profile."""
     user = get_object_or_404(User, username=request.user.username)
-    posts = Post.objects.filter(author=user)
     form = ProfileForm(request.POST or None, instance=user)
     context = {
         'profile': user,
-        'page_obj': get_page_obj(posts, request),
         'form': form
     }
-    if request.method == 'POST':
+    if request.method == 'POST' and user == request.user:
         if form.is_valid():
             form.save()
             return redirect('blog:profile', username=request.user.username)
@@ -79,7 +78,7 @@ def post_detail(request, post_id: int):
     post = get_object_or_404(Post, pk=post_id)
     if request.user != post.author:
         post = get_object_or_404(Post.published_objects.all(), pk=post_id)
-    comments = post.comments.select_related('author').filter(is_published=True)
+    comments = post.comments.select_related('author').all()
     context = {
         'post': post,
         'comments': comments,
@@ -118,10 +117,11 @@ def delete_post(request, post_id: int):
     """Delete post."""
     user = request.user
     post = get_object_or_404(Post, pk=post_id, author=user)
+    form = PostForm(request.POST or None, instance=post)
     if request.method == 'POST':
         post.delete()
         return redirect('blog:profile', username=request.user.username)
-    return render(request, 'blog/create.html', {'post': post})
+    return render(request, 'blog/create.html', {'post': post, 'form': form})
 
 
 @login_required
