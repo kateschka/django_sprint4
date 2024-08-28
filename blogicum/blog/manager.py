@@ -1,7 +1,6 @@
 from django.db.models import Manager
 from django.db.models.query import QuerySet
 from django.utils.timezone import now
-from django.db.models import Count
 
 
 class PublishedPostManager(Manager):
@@ -16,8 +15,7 @@ class PublishedPostManager(Manager):
             category__is_published=True,
         ).order_by(
             '-pub_date'
-        ).annotate(
-            comment_count=Count('comments'))
+        )
 
     def get_all_for_user(self, user) -> QuerySet:
         """Return all published posts of a given author."""

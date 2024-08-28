@@ -2,12 +2,11 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.views.generic import ListView
-from django.db.models import Count
 
 from .forms import PostForm, CommentForm, ProfileForm
 from .models import Category, Post, Comment, User
 from .constants import QUERIES_PER_PAGE
-from .utils import get_page_obj
+from .utils import get_page_obj, get_comment_count
 
 
 class IndexListView(ListView):
@@ -18,7 +17,7 @@ class IndexListView(ListView):
     paginate_by = QUERIES_PER_PAGE
 
     def get_queryset(self):
-        return Post.published_objects.all()
+        return get_comment_count(Post.published_objects.all())
 
 
 def category_posts(request, category_slug: str):
@@ -40,16 +39,17 @@ def profile(request, username: str):
     """Display user profile."""
     user = get_object_or_404(User, username=username)
     if not user == request.user:
-        posts = Post.published_objects.get_all_for_user(user)
+        posts = get_comment_count(
+            Post.published_objects.get_all_for_user(user))
     else:
-        posts = Post.objects.select_related(
-            'author', 'category', 'location'
-        ).filter(
-            author=user
-        ).order_by(
-            '-pub_date'
-        ).annotate(
-            comment_count=Count('comments'))
+        posts = get_comment_count(
+            Post.objects.select_related(
+                'author', 'category', 'location'
+            ).filter(
+                author=user
+            ).order_by(
+                '-pub_date'
+            ))
     context = {
         'profile': user,
         'page_obj': get_page_obj(posts, request)
